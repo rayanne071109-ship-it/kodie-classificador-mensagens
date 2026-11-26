@@ -1,0 +1,524 @@
+{
+  "name": "Classificador de Mensagens com IA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "classificar-mensagem",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0bd5ed2a-1fa0-43a1-96af-e69c20c09f52",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "f235c9f7-354c-4d11-b1c2-9212b9874fa1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "972a3a65-b7c3-4014-849a-8ffb9aeb10d2",
+              "name": "mensagem",
+              "value": "={{ $json.body.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "f25fcc86-e115-4963-a843-777fede5c673",
+              "name": "cliente",
+              "value": "={{ $json.body.cliente ?? 'Não informado' }}",
+              "type": "string"
+            },
+            {
+              "id": "9362598d-1a9a-4424-b01d-aec8b31635ed",
+              "name": "canal",
+              "value": "={{ $json.body.canal ?? 'webhook' }}",
+              "type": "string"
+            },
+            {
+              "id": "f904e3d5-a53b-43f7-8776-d4180ea77385",
+              "name": "api_url",
+              "value": "http://api:8000",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bf94b682-c1bc-435e-a607-f794a5590292",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.api_url }}/classify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ mensagem: $json.mensagem, cliente: $json.cliente, canal: $json.canal }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "620ded69-e2e2-408c-97b4-9cee1ab858e0",
+      "name": "HTTP Request - API FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "25dce6af-0084-4984-b2fb-392d26d3641a",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "duvida",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Dúvida"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "7f9c001d-d33e-468d-8e3f-69ff72a87545",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "reclamacao",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reclamação"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "2492cec5-9ec8-4576-bb64-be100bc04269",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "solicitacao",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Solicitação"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "5838de9f-4a96-4954-9c17-69a18cf94071",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "elogio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Elogio"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Outros"
+        }
+      },
+      "id": "11950c41-9749-4244-b3e2-34efc24ef5ff",
+      "name": "Switch - Categoria",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "597f921b-152c-47f6-a96c-aa2ed6e5613c",
+              "name": "fila_destino",
+              "value": "Atendimento / FAQ",
+              "type": "string"
+            },
+            {
+              "id": "b9383a72-ed74-4aba-9588-10f5a675321c",
+              "name": "status",
+              "value": "encaminhado",
+              "type": "string"
+            },
+            {
+              "id": "fca3fda6-acb3-47dd-b58c-8c10acb65a70",
+              "name": "alerta_urgente",
+              "value": "={{ ['alta','urgente'].includes($json.prioridade) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c4ba8727-d877-444e-bf4e-5444549e1f67",
+      "name": "Encaminhar - Dúvida",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e122c43d-c0d9-4697-bd78-922e83b2ff75",
+              "name": "fila_destino",
+              "value": "Qualidade / Reclamações",
+              "type": "string"
+            },
+            {
+              "id": "cbb89f52-8996-46cb-9976-1c91dc75ce6c",
+              "name": "status",
+              "value": "encaminhado",
+              "type": "string"
+            },
+            {
+              "id": "9919a29e-d52f-424c-a0c2-337e71182f39",
+              "name": "alerta_urgente",
+              "value": "={{ ['alta','urgente'].includes($json.prioridade) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "3b878b47-b703-4879-958d-776630b092dd",
+      "name": "Encaminhar - Reclamação",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        230
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "47c117a6-8ca8-459d-b37a-2c30ebce8a95",
+              "name": "fila_destino",
+              "value": "Solicitações",
+              "type": "string"
+            },
+            {
+              "id": "17364485-2834-41e5-b1ad-a30ea2c77f19",
+              "name": "status",
+              "value": "encaminhado",
+              "type": "string"
+            },
+            {
+              "id": "185dd788-3685-4065-8b79-7d017bc11a75",
+              "name": "alerta_urgente",
+              "value": "={{ ['alta','urgente'].includes($json.prioridade) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "55343ecf-d830-4565-a43f-db33f3011328",
+      "name": "Encaminhar - Solicitação",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "195af642-2f9b-4a1d-a66b-e150176373ec",
+              "name": "fila_destino",
+              "value": "Feedback positivo",
+              "type": "string"
+            },
+            {
+              "id": "5008b6f8-46d5-4b83-af84-a50f31d38d14",
+              "name": "status",
+              "value": "encaminhado",
+              "type": "string"
+            },
+            {
+              "id": "a78b5449-5b07-4196-a9e0-6fd457480498",
+              "name": "alerta_urgente",
+              "value": "={{ ['alta','urgente'].includes($json.prioridade) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "3fd5c2de-b923-4bc4-b66b-f0de345dd716",
+      "name": "Encaminhar - Elogio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        530
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5d8b6366-1841-46c1-a52b-e729f499ac25",
+              "name": "fila_destino",
+              "value": "Triagem manual",
+              "type": "string"
+            },
+            {
+              "id": "bae0a80e-62fd-49bc-8c2a-4ad66c825395",
+              "name": "status",
+              "value": "encaminhado",
+              "type": "string"
+            },
+            {
+              "id": "424f9f10-3605-4084-bc5f-5e0bf03581d8",
+              "name": "alerta_urgente",
+              "value": "={{ ['alta','urgente'].includes($json.prioridade) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a6474887-adfb-45c3-9fcd-66c355265585",
+      "name": "Encaminhar - Outros",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      },
+      "id": "6bd4ad59-7f1d-4661-86d0-55b6bbe168a8",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - API FastAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - API FastAPI": {
+      "main": [
+        [
+          {
+            "node": "Switch - Categoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Categoria": {
+      "main": [
+        [
+          {
+            "node": "Encaminhar - Dúvida",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar - Reclamação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar - Solicitação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar - Elogio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar - Outros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar - Dúvida": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar - Reclamação": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar - Solicitação": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar - Elogio": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar - Outros": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
