@@ -1,0 +1,8 @@
+[
+  {"cliente": "Ana Souza", "canal": "email", "mensagem": "Fui cobrado duas vezes no cartão este mês e quero o estorno hoje!"},
+  {"cliente": "Carlos Lima", "canal": "whatsapp", "mensagem": "Qual o horário de funcionamento aos sábados?"},
+  {"cliente": "Marina Alves", "canal": "site", "mensagem": "Gostaria de solicitar a segunda via do boleto de novembro."},
+  {"cliente": "João Pereira", "canal": "email", "mensagem": "Parabéns pelo atendimento, a equipe foi excelente!"},
+  {"cliente": "Paula Rocha", "canal": "whatsapp", "mensagem": "Não consigo fazer login no aplicativo, aparece erro de senha."},
+  {"cliente": "Spam Bot", "canal": "site", "mensagem": "asdf qwer 12345 ganhe dinheiro rápido clique aqui"}
+]
